@@ -57,7 +57,7 @@ function loggedin(req, res, user) {
 
   passport.use(new Strategy({
     clientID:  "795196567241883659",
-    clientSecret: "VMDkbBQqoO-XdN2LODkb96tiXPjR8gQ-",
+    clientSecret: "",
     callbackURL: "http://localhost:1159/auth/callback",
     scope: ["identify", "guilds.join"]
   }, 
@@ -117,6 +117,4 @@ app.get("/auth/logout", function(req, res) {
 app.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}`)
 }) 
-// CLIENT ID: 795196567241883659
-// CLIENT SECRET: VMDkbBQqoO-XdN2LODkb96tiXPjR8gQ-
 }
