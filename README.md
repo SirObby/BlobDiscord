@@ -1,5 +1,6 @@
 # BlobDiscord
 An Antiraid discord bot. 
+[Invite](https://discord.com/api/oauth2/authorize?client_id=795196567241883659&permissions=8&scope=bot)[Support Server](https://discord.gg/dNfDBUC6Tu)
 
 ## Installing
 1. Clone the repisotory\
