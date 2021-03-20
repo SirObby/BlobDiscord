@@ -1,5 +1,5 @@
 # BlobDiscord
-An Antiraid discord bot. **DISCLAIMER! THIS ISNT UP TO DATE TO THE NEWEST VERSION!** 
+An Antiraid discord bot. **DISCLAIMER! THIS ISNT UP TO DATE TO THE NEWEST VERSION!**\
 [Invite](https://discord.com/api/oauth2/authorize?client_id=795196567241883659&permissions=8&scope=bot)  [Support Server](https://discord.gg/dNfDBUC6Tu)
 
 ## Installing
