@@ -1,6 +1,6 @@
 const configs = require('./configs.json')
 let cache = []
-let prefix = "blob"
+let prefix = "blub"
 
 exports.init = () => {
 

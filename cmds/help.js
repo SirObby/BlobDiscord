@@ -16,7 +16,8 @@ exports.execute = (message, command, args, client) => {
 
         .setDescription('To view anything run <help> <argument>')
         .addField(`<:ban:801415398863929364> Anti Raid`, `MAX_MESSAGES`, true)
-        .addField(`<:790171307290394685:798587736155488326> Commands`, `help\ninfo\nping`, true)
+        .addField(`<:790171307290394685:798587736155488326> Commands`, `help\ninfo\nping\nuptime`, true)
+        .addField(`<:790171307290394685:798587736155488326> Music Commands`, `play\nskip\nqueue\nstop`, true)
         ;
 
     message.channel.send(embed);
@@ -66,6 +67,23 @@ exports.execute = (message, command, args, client) => {
         .setColor(0x7289da)
 
         .setDescription('Shows bot latency.')
+        //.addField(`<:delete:787038088010399778>`, `MAX_MESSAGES, MAX_MENTIONS`, true)
+        
+        ;
+
+    message.channel.send(embed);
+
+    }
+
+    if(args[0] == "ping") {
+
+        const embed = new Discord.MessageEmbed()
+
+        .setTitle('<:790171307290394685:798587736155488326> Uptime')
+
+        .setColor(0x7289da)
+
+        .setDescription('Shows bot uptime.')
         //.addField(`<:delete:787038088010399778>`, `MAX_MESSAGES, MAX_MENTIONS`, true)
         
         ;

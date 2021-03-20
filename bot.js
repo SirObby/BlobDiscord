@@ -3,14 +3,135 @@ const client = new Discord.Client();
 const configs = require('./configs.json')
 const fs = require("fs")
 const site = require('./website.js')
+const Utilities = require('./Utilities.js')
+const BLOB = require('./blob.js')
+const uniqid = require('uniqid');
+const fetch = require('node-fetch');
+//const sharder = require('./shard.js');
 
 const command = require('./command.js')
 let toggle = 0;
 
+const ytdl = require('ytdl-core');
+
+const callfunc = require('./callfunc.js');
+
+let queue = [];
+let connection;
+let dispatcher;
+let loop;
+
+exports.setConnection = async (c) => {
+    connection = c;   
+}
+
+exports.setDisp = async (d) => {
+    dispatcher = d;   
+}
+
+exports.getDisp = async () => {
+    return dispatcher;
+  };
+
+exports.getQueue = async () => {
+    return queue;
+  };
+
+exports.changeQueue = async (q) => {
+
+    queue = q;   
+
+}
+
+exports.setDispatch = async (message, msg) => {
+try {
+    connection = await message.member.voice.channel.join();
+
+    dispatcher = connection.play(ytdl(queue[message.guild.id][0].url, {
+        filter: 'audioonly',
+        quality: 'highestaudio',
+        highWaterMark: 1 << 25
+    }))
+
+    dispatcher.on('error', async err => {
+        console.error(err)
+    })
+
+    dispatcher.on('finish', async () => {
+        if (!queue[message.guild.id].length) {
+            const endeded = new Discord.MessageEmbed()
+
+            .setColor(0x7289da)
+
+            .setDescription(`Nothing left to play!`)
+            ;
+
+            message.channel.send(endeded)
+
+
+            message.member.voice.channel.leave();
+            return;
+        }
+        queue[message.guild.id].shift();
+        callfunc.setDisp(message)
+    })
+
+    songEmbedYTDL = new Discord.MessageEmbed()
+        .setTitle(`**${queue[message.guild.id][0].title}** is playing`)
+        .setColor(0x7289da)
+        .addField('Song Length:', `${Utilities.secondsToString(queue[message.guild.id][0].video_length)}`, true)
+        .addField('Author:', queue[message.guild.id][0].author.name, true)
+        .addField('Suggested By:', queue[message.guild.id][0].requested_by, false)
+
+    /*if(queue[message.guild.id][0].video_thumb.thumbnails[4]) {
+        songEmbedYTDL.setImage(queue[message.guild.id][0].video_thumb.thumbnails[4].url);
+    } else {
+        songEmbedYTDL.setImage(queue[message.guild.id][0].video_thumb.thumbnails[3].url)
+    }*/
+    if(msg != undefined) {
+    msg.edit(songEmbedYTDL)
+    } else {
+        message.channel.send(songEmbedYTDL)
+    }
+} catch(e) {
+    console.log(e)
+}
+};
+
+function secondsToString(seconds) {
+    var days = Math.floor(seconds / 86400);
+    var hours = Math.floor((seconds % 86400) / 3600);
+    var minutes = Math.floor((seconds % 3600) / 60);
+    var seconds = Math.floor(seconds % 60);
+
+    var str = "";
+
+    if (days > 0) {
+        str += days + ":";
+    }
+    if (hours < 10) {
+        hours = "0" + hours;
+    }
+    if (minutes < 10) {
+        minutes = "0" + minutes;
+    }
+    if (seconds < 10) {
+        seconds = "0" + seconds;
+    }
+
+    str += `${days}:${hours}:${minutes}:${seconds}`
+
+    return str;
+}
+
 client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);
     command.init()
-    site.init(client)
+    /*
+    if(sharder.checkSite == true) {
+        sharder.siteOn()
+        site.init(client)
+    }*/
     let statuses = [
         `Users.`,
         `Servers.`,
@@ -23,7 +144,11 @@ client.on('ready', () => {
         `to life universe and everything`,
         `Your Money`,
         `Blobs`,
-        `Something I dunno`
+        `Something I dunno`,
+        `my uptime ${secondsToString(process.uptime())}`,
+        `my patreon patreon.com/mellab`,
+        `for messages starting with blob`,
+        `my prefix is blob`
     ]
 
     setInterval(function () {
@@ -31,30 +156,34 @@ client.on('ready', () => {
         client.user.setActivity(status, {
             type: 'WATCHING'
         });
+        try {
+        fetch(`https://discordbotlist.com/api/v1/bots/795196567241883659/stats`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0IjoxLCJpZCI6Ijc5NTE5NjU2NzI0MTg4MzY1OSIsImlhdCI6MTYxNDk3MTIwM30.PisFhnCJ-mPrEDhAJJrIiJfMvghmk6MaOb82AHzRZDc'
+            },
+            body: JSON.stringify({
+                users: client.users.cache.size,
+                guilds: client.guilds.cache.size
+            })
+        });
+    } catch(e) {
+        console.log(e)
+    }
     }, 6000)
-
-    setInterval(() => {
-        toggle++
-
-        if(toggle == 2) {
-            toggle = 0
-        }
-
-        //client.user.setAvatar(`./Blob${toggle}.png`);
-
-    }, 3600000);
 
 
 });
 
 client.on('message', message => {
 
-    if(message.guild == undefined) return;
+    if (message.guild == undefined) return;
 
     if (message.author.bot == true) return;
 
 
-    if(message.content.startsWith("blob")) {
+    if (message.content.startsWith("blob")) {
 
         command.exec(message, client);
 
@@ -62,294 +191,42 @@ client.on('message', message => {
     //
 
     if (fs.existsSync(`./Servers/${message.guild.id}.json`)) {
-
         let content = JSON.parse(fs.readFileSync(`./Servers/${message.guild.id}.json`, 'utf8'));
-        console.log(content)
-        let found = false;
 
-        let id = "";
-        let msgs = []
-        let time;
-        let messages;
-        let mentions;
-        let links;
-        let warns;
+        if(content.Data.Users[message.author.id] == undefined) {
 
-        content.Users.forEach(element => {
+            content.Data.Users[message.author.id] = {"Messages": [`${message.createdTimestamp}|next|${message.id}`], "Muted": {"is": false}}
 
-            if (element.id == message.author.id) {
-                found = true
-
-                id = element.id
-                msgs = element.msgs
-                time = element.time
-                messages = element.messages
-                mentions = element.mentions
-                links = element.links
-                warns = element.warns
-
-                element.messages++
-                element.msgs.push(message.id)
-
-                element.mentions = element.mentions + message.mentions.users.array.length
-                /*
-                if (message.mentions.members.first() != undefined) {
-
-                    let yes = message.content.slice("<@")
-
-                    element.mentions = element.mentions + yes.length
-                }*/
-
-                try {
-                    /*
-                    let why = message.content.slice("https://")
-                    let whyy = message.content.slice("http://")
-
-                        element.links = element.links + why.length + whyy.length*/
-                } catch (e) {
-                    console.log(e)
-                }
-                //console.log(message.mentions.members.first())
-            }
-
-        });
-
-        if (found == true) {
-
-            if(message.member.hasPermission("MANAGE_CHANNELS") || message.member.hasPermission("MANAGE_ROLES")) return; 
-
-            let timett = (Date.now() - time) / 1000
-
-            if(Date.now() - time > 10000) {
-
-                content.Users.forEach(element => {
-
-                    if (element.id == message.author.id) {
-                        element.msgs = []
-                        element.time = Date.now()
-                        element.messages = 1
-                        element.mentions = 0
-                        element.links = 0
-                    }
-
-                });
-
-            }
-
-            if (mentions > 5) {
-
-                let index = 0;
-        
-                msgs.forEach(element => {
-                    try {
-                        message.channel.messages.cache.get(element).delete()
-                        index++
-                    } catch (e) {
-                        console.log(e)
-                    }
-                });
-                message.channel.send(`<:delete:787038088010399778> Deleted ${index} by ${message.author.username}#${message.author.discriminator}`)
-        
-                let myRole = message.guild.roles.cache.find(role => role.name === "Muted");
-        
-                if (myRole != undefined) {
-        
-                    message.member.roles.add(myRole)
-        
-                    message.channel.send(`<:locked_channel:787018218098393120> Successfully muted ${message.author.username}#${message.author.discriminator} for ${Math.floor(mentions * 20)}s (${mentions} / ${timett}s)`)
-        
-                    try {
-                        message.author.send(`<:locked_channel:787018218098393120> You have been automatically muted for ${Math.floor(mentions * 20)} seconds (${mentions} / ${timett}s)`)
-                    } catch (e) {
-        
-                    }
-        
-                    setTimeout(() => {
-        
-                        message.member.roles.remove(myRole)
-        
-                    }, mentions * 20 * 1000);
-                } else {
-                    message.channel.send(`❌ Unable to mute ${message.author.username}#${message.author.discriminator} because: \`\`Role named "Muted" does not exist\`\``)
-                }
-
-                content.Users.forEach(element => {
-
-                    if (element.id == message.author.id) {
-                        element.msgs = []
-                        element.time = Date.now()
-                        element.messages = 1
-                        element.mentions = 0
-                        element.links = 0
-                    }
-
-                });
-        
-            }
-        
-            if (links > 5) {
-
-                content.Users.forEach(element => {
-
-                    if (element.id == message.author.id) {
-                        element.msgs = []
-                        element.time = Date.now()
-                        element.messages = 1
-                        element.mentions = 0
-                        element.links = 0
-                    }
-
-                });
-        
-                let index = 0;
-        
-                msgs.forEach(element => {
-                    try {
-                        message.channel.messages.cache.get(element).delete()
-                        index++
-                    } catch (e) {
-                        console.log(e)
-                    }
-                });
-                message.channel.send(`<:delete:787038088010399778> Deleted ${index} by ${message.author.username}#${message.author.discriminator}`)
-        
-                let myRole = message.guild.roles.cache.find(role => role.name === "Muted");
-        
-                if (myRole != undefined) {
-        
-                    message.member.roles.add(myRole)
-        
-                    message.channel.send(`<:locked_channel:787018218098393120> Successfully muted ${message.author.username}#${message.author.discriminator} for ${Math.floor(links * 10)}s (${links} / ${timett}s)`)
-        
-                    try {
-                        message.author.send(`<:locked_channel:787018218098393120> You have been automatically muted for ${Math.floor(links * 10)} seconds (${links} / ${timett}s)`)
-                    } catch (e) {
-        
-                    }
-        
-                    setTimeout(() => {
-        
-                        message.member.roles.remove(myRole)
-        
-                    }, links * 10 * 1000);
-                } else {
-                    message.channel.send(`❌ Unable to mute ${message.author.username}#${message.author.discriminator} because: \`\`Role named "Muted" does not exist\`\``)
-                }
-        
-            }
-        
-            if (messages > 7) {
-
-                content.Users.forEach(element => {
-
-                    if (element.id == message.author.id) {
-                        element.msgs = []
-                        element.time = Date.now()
-                        element.messages = 1
-                        element.mentions = 0
-                        element.links = 0
-                    }
-
-                });
-
-                let index = 0;
-        
-                msgs.forEach(element => {
-                    try {
-                        message.channel.messages.cache.get(element).delete()
-                        index++
-                    } catch (e) {
-                        console.log(e)
-                    }
-                });
-                message.channel.send(`<:delete:787038088010399778> Deleted ${index} by ${message.author.username}#${message.author.discriminator}`)
-        
-                let myRole = message.guild.roles.cache.find(role => role.name === "Muted");
-        
-                if (myRole != undefined) {
-        
-                    message.member.roles.add(myRole)
-        
-                    message.channel.send(`<:locked_channel:787018218098393120> Successfully muted ${message.author.username}#${message.author.discriminator} for ${Math.floor(messages * 10)}s (${messages} / ${timett}s)`)
-        
-                    try {
-                        message.author.send(`<:locked_channel:787018218098393120> You have been automatically muted for ${Math.floor(messages * 10)} seconds (${messages} / ${timett}s)`)
-                    } catch (e) {
-        
-                    }
-        
-                    setTimeout(() => {
-        
-                        message.member.roles.remove(myRole)
-        
-                    }, messages * 10 * 1000);
-                } else {
-                    message.channel.send(`❌ Unable to mute ${message.author.username}#${message.author.discriminator} because: \`\`Role named "Muted" does not exist\`\``)
-                }
-
-                
-            }
-
-
-            /*if (time == 0) {
-
-                content.Users.forEach(element => {
-
-                    if (element.id == message.author.id) {
-                        element.time = Date.now()
-                    }
-
-                });
-
-                setTimeout(() => {
-
-                    stuff.check(id, msgs, time, messages, mentions, links, message, client)
-
-                        setTimeout(() => {
-
-                            content.Users.forEach(element => {
-
-                                if (element.id == message.author.id) {
-                                    element.msgs = []
-                                    element.time = 0
-                                    element.messages = 1
-                                    element.mentions = 0
-                                    element.links = 0
-                                }
-
-                            });
-
-                        }, 1000);
-
-                }, 10000);
-
-                setTimeout(() => {
-                    
-                    content.Users.forEach(element => {
-
-                        if (element.id == message.author.id) {
-                            element.msgs = []
-                            element.time = 0
-                            element.messages = 1
-                            element.mentions = 0
-                            element.links = 0
-                            fs.writeFileSync(`./Servers/${message.guild.id}.json`, JSON.stringify(content, null, 4));
-                        }
-
-                    });
-
-                }, 11000);
-
-            }*/
         } else {
 
-            content.Users.push(JSON.parse(`{ "id": ${message.author.id}, "time":0, "messages": 1, "msgs": [], "mentions": 0, "links": 0, "warms": 0 }`))
+            content.Data.Users[message.author.id].Messages.push(`${message.createdTimestamp}|next|${message.id}`)            
 
         }
+
+        if(content.Data.Users[message.author.id].Messages.length > 7 ) {
+
+            let arr = content.Data.Users[message.author.id].Messages;
+
+            if(BLOB.check(content.Data.Users[message.author.id].Messages)) {
+
+                content.Data.Users[message.author.id].Messages = []
+
+                BLOB.delete(arr, message)
+
+            } 
+
+        }
+
+        if(content.Data.Users[message.author.id].Messages.length > 29 ) {
+
+            content.Data.Users[message.author.id].Messages = []
+
+        }
+
         fs.writeFileSync(`./Servers/${message.guild.id}.json`, JSON.stringify(content, null, 4));
     } else {
 
-        fs.writeFile("./Servers/" + message.guild.id + ".json", `{ "Users": [], "Cache": [], "Warns": [], "configs": { "interval": 10, "messages": {"max": 7}, "mentions": {"max": 5}  } }`, function (err) {
+        fs.writeFile("./Servers/" + message.guild.id + ".json", `{ "Data": {"Users": {}} }`, function (err) {
             if (err) throw err;
             console.log('Saved!');
         });

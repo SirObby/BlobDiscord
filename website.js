@@ -8,15 +8,33 @@ const bodyParser = require('body-parser')
 const session = require("express-session");
 const app = express();
 const fs =require("fs")
-const port = 1159;
+const port = 3000;
 
-app.use(express.static("website"));
+app.post('/webhook', (req, res) => {
+
+
+  if (req.headers.authorization == "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0IjoxLCJpZCI6Ijc5NTE5NjU2NzI0MTg4MzY1OSIsImlhdCI6MTYxNDk3MTIwM30.PisFhnCJ-mPrEDhAJJrIiJfMvghmk6MaOb82AHzRZDc") {
+      
+    try {
+
+      client.users.cache.get(req.body.id).send(`Thank you for voting for BlobDiscord \:D`)
+
+    } catch (ee) {
+      console.log(ee)
+    } 
+
+  }
+
+})
+
+app.use(express.static("views"));
+
+app.use(bodyParser.urlencoded({
+  extended: false
+}))
 
 app.use(bodyParser.json())
 
-    app.use(bodyParser.urlencoded({
-        extended: true
-    }));
 
 passport.serializeUser((user, done) => {
   done(null, user);
@@ -31,6 +49,21 @@ next();
 }); // Hi
 
 function loggedin(req, res, user) {
+
+  if(!fs.existsSync(`./Users/${req.user.id}.json`)) {
+        
+    fs.writeFile("./Users/" + req.user.id + ".json", `{
+    "data": ${JSON.stringify(req.user)}
+    }`, function (err) {
+      if (err) console.log(err);
+      console.log('Saved!');
+
+      res.send(`Your BlobDiscord account has been successfully created. <i>This data <b>CANNOT</b> be removed</i>`)
+
+  });
+
+  } else {
+
   res.send(`
   <!DOCTYPE html>
   <html lang="en">
@@ -52,14 +85,16 @@ function loggedin(req, res, user) {
   </body>
   </html>
   `)
+        }
+  
     
 }
 
   passport.use(new Strategy({
-    clientID:  "795196567241883659",
-    clientSecret: "",
-    callbackURL: "http://localhost:1159/auth/callback",
-    scope: ["identify", "guilds.join"]
+    clientID:  "760861539007070238",
+    clientSecret: "DBsDpoo4mW9L_fAApkprMZbSqKUd12pI",
+    callbackURL: "http://107.152.39.191:3000/auth/callback",
+    scope: ["identify", "guilds.join", "guilds", "connections"]
   }, 
   (accessToken, refreshToken, profile, done) => {
       process.nextTick(() => done(null, profile)); 
@@ -74,7 +109,7 @@ function loggedin(req, res, user) {
   
   app.use(passport.initialize());
   app.use(passport.session());
-  app.locals.domain = "localhost:1159"; // Here another error
+  app.locals.domain = "localhost:3000"; // Here another error
   
   app.get("/auth/login", (req, res, next) => {	
   next(); // I dunno what happens dude
@@ -110,11 +145,24 @@ app.get("/auth/logout", function(req, res) {
 
     app.get('/', (req, res) => {
       if (!req.user) return res.redirect('/auth/')//res.send("Not logined!");
-      if (req.user) return loggedin(req, res, req.user)//res.send("Hello: " + req.user.username);
+      if (req.user) return loggedin(req, res, req.user)//res.send("Hello: " + req.user.username)
+
     })
 
+
+    app.post('/post', function (req, res) {
+
+      
+    
+    })
+
+    app.get("/invite", (req,res) => {
+      res.redirect('https://discord.com/api/oauth2/authorize?client_id=795196567241883659&permissions=8&scope=bot')
+    });
   
 app.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}`)
 }) 
+// CLIENT ID: 795196567241883659
+// CLIENT SECRET: xCXY2Ikl4HN8YZ2hgG992rZDOpw2Am93
 }
