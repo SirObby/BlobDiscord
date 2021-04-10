@@ -2,16 +2,19 @@
   "name": "blobster",
   "version": "1.0.0",
   "description": "",
-  "main": "bot.js",
+  "main": "dist/bot.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node bot.js"
+    "start": "tsc && dist/bot.js"
+    "build": "tsc"
+   
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@discordjs/opus": "^0.5.0",
+    "@types/node": "^14.14.37",
     "body-parser": "^1.19.0",
     "cookie-parser": "^1.4.5",
     "discord.js": "^12.5.3",
@@ -20,8 +23,8 @@
     "ffmpeg-static": "^4.3.0",
     "passport": "^0.4.1",
     "passport-discord": "^0.1.4",
+    "typescript": "^4.2.4",
     "uniqid": "^5.3.0",
     "ytdl-core": "^4.5.0"
-
   }
 }
