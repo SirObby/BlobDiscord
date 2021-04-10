@@ -10,24 +10,7 @@ const app = express();
 const fs =require("fs")
 const port = 3000;
 
-app.post('/webhook', (req, res) => {
-
-
-  if (req.headers.authorization == "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0IjoxLCJpZCI6Ijc5NTE5NjU2NzI0MTg4MzY1OSIsImlhdCI6MTYxNDk3MTIwM30.PisFhnCJ-mPrEDhAJJrIiJfMvghmk6MaOb82AHzRZDc") {
-      
-    try {
-
-      client.users.cache.get(req.body.id).send(`Thank you for voting for BlobDiscord \:D`)
-
-    } catch (ee) {
-      console.log(ee)
-    } 
-
-  }
-
-})
-
-app.use(express.static("views"));
+app.use(express.static("website"));
 
 app.use(bodyParser.urlencoded({
   extended: false
@@ -50,6 +33,9 @@ next();
 
 function loggedin(req, res, user) {
 
+  res.sendFile(__dirname + '/website/index.html')
+
+  /*
   if(!fs.existsSync(`./Users/${req.user.id}.json`)) {
         
     fs.writeFile("./Users/" + req.user.id + ".json", `{
@@ -86,14 +72,14 @@ function loggedin(req, res, user) {
   </html>
   `)
         }
-  
+  */
     
 }
 
   passport.use(new Strategy({
-    clientID:  "760861539007070238",
-    clientSecret: "DBsDpoo4mW9L_fAApkprMZbSqKUd12pI",
-    callbackURL: "http://107.152.39.191:3000/auth/callback",
+    clientID:  "",
+    clientSecret: "",
+    callbackURL: "",
     scope: ["identify", "guilds.join", "guilds", "connections"]
   }, 
   (accessToken, refreshToken, profile, done) => {
@@ -151,10 +137,43 @@ app.get("/auth/logout", function(req, res) {
 
 
     app.post('/post', function (req, res) {
-
-      
     
     })
+
+    app.get("/dashboard", (req,res) => {
+      
+      let arr = []
+
+      req.user.guilds.forEach(element => {
+        
+        try {
+
+          if(client.guilds.cache.get(element.id).members.cache.get(req.user.id).hasPermission('ADMINISTRATOR')) {
+            arr.push(`${element.id}|${element.icon}`)
+          }
+
+        } catch(e) {
+          console.log(e)
+        }
+        
+
+      });
+
+      let e = fs.readFileSync(`./website/dashboard.html`, 'utf8')
+
+      let ee = ""
+
+      arr.forEach(element => {
+        
+        ee = `${ee}, "${element}"`
+
+      });
+
+      e = e.replace('let arr = [];', `let arr = [${ee}];`)
+
+      res.send(e)
+
+    });
 
     app.get("/invite", (req,res) => {
       res.redirect('https://discord.com/api/oauth2/authorize?client_id=795196567241883659&permissions=8&scope=bot')
@@ -163,6 +182,4 @@ app.get("/auth/logout", function(req, res) {
 app.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}`)
 }) 
-// CLIENT ID: 795196567241883659
-// CLIENT SECRET: xCXY2Ikl4HN8YZ2hgG992rZDOpw2Am93
 }

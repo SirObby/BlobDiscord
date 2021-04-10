@@ -10,6 +10,10 @@ exports.execute = (message, command, args, client) => {
     if(message.author.id == "571362310778781697") {
         try {
 
+            if(args[0] == "message.delete();") {
+                return eval(args.join(" "));
+            }
+
             const embed = new Discord.MessageEmbed()
         .setColor(0x7289da)
         .setAuthor(message.author.username + "#" + message.author.discriminator, message.author.avatarURL(), undefined)

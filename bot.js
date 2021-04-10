@@ -7,9 +7,9 @@ const Utilities = require('./Utilities.js')
 const BLOB = require('./blob.js')
 const uniqid = require('uniqid');
 const fetch = require('node-fetch');
-//const sharder = require('./shard.js');
 
 const command = require('./command.js')
+const slashcommand = require('./slashhandler.js')
 let toggle = 0;
 
 const ytdl = require('ytdl-core');
@@ -42,6 +42,57 @@ exports.changeQueue = async (q) => {
     queue = q;   
 
 }
+
+exports.setDispatchSlash = async (interaction, member) => {
+    try {
+        connection = await member.voice.channel.join();
+    
+        dispatcher = connection.play(ytdl(queue[interaction.guild_id][0].url, {
+            filter: 'audioonly',
+            quality: 'highestaudio',
+            highWaterMark: 1 << 25
+        }))
+    
+        dispatcher.on('error', async err => {
+            console.error(err)
+        })
+    
+        dispatcher.on('finish', async () => {
+            if (!queue[interaction.guild_id].length) {
+                const endeded = new Discord.MessageEmbed()
+    
+                .setColor(0x7289da)
+    
+                .setDescription(`Nothing left to play!`)
+                ;
+    
+                new Discord.WebhookClient(client.user.id, interaction.token).send(endeded)
+    
+    
+                member.voice.channel.leave();
+                return;
+            }
+            queue[interaction.guild_id].shift();
+            callfunc.setSlashDisp(interaction, member)
+        })
+    
+        songEmbedYTDL = new Discord.MessageEmbed()
+            .setTitle(`**${queue[interaction.guild_id][0].title}** is playing`)
+            .setColor(0x7289da)
+            .addField('Song Length:', `${Utilities.secondsToString(queue[interaction.guild_id][0].video_length)}`, true)
+            .addField('Author:', queue[interaction.guild_id][0].author.name, true)
+            .addField('Suggested By:', queue[interaction.guild_id][0].requested_by, false)
+    
+        /*if(queue[message.guild.id][0].video_thumb.thumbnails[4]) {
+            songEmbedYTDL.setImage(queue[message.guild.id][0].video_thumb.thumbnails[4].url);
+        } else {
+            songEmbedYTDL.setImage(queue[message.guild.id][0].video_thumb.thumbnails[3].url)
+        }*/
+        new Discord.WebhookClient(client.user.id, interaction.token).send(songEmbedYTDL)
+    } catch(e) {
+        console.log(e)
+    }
+    };
 
 exports.setDispatch = async (message, msg) => {
 try {
@@ -127,11 +178,9 @@ function secondsToString(seconds) {
 client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);
     command.init()
-    /*
-    if(sharder.checkSite == true) {
-        sharder.siteOn()
-        site.init(client)
-    }*/
+    slashcommand.init()
+
+    site.init(client)
     let statuses = [
         `Users.`,
         `Servers.`,
@@ -148,7 +197,8 @@ client.on('ready', () => {
         `my uptime ${secondsToString(process.uptime())}`,
         `my patreon patreon.com/mellab`,
         `for messages starting with blob`,
-        `my prefix is blob`
+        `my prefix is blob`,
+        `${Math.floor(process.memoryUsage().heapUsed / 1024 / 1024)}MB`
     ]
 
     setInterval(function () {
@@ -156,25 +206,15 @@ client.on('ready', () => {
         client.user.setActivity(status, {
             type: 'WATCHING'
         });
-        try {
-        fetch(`https://discordbotlist.com/api/v1/bots/795196567241883659/stats`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0IjoxLCJpZCI6Ijc5NTE5NjU2NzI0MTg4MzY1OSIsImlhdCI6MTYxNDk3MTIwM30.PisFhnCJ-mPrEDhAJJrIiJfMvghmk6MaOb82AHzRZDc'
-            },
-            body: JSON.stringify({
-                users: client.users.cache.size,
-                guilds: client.guilds.cache.size
-            })
-        });
-    } catch(e) {
-        console.log(e)
-    }
     }, 6000)
 
 
 });
+client.ws.on('INTERACTION_CREATE', async interaction => {
+    
+    slashcommand.exec(interaction, client)
+    
+      })
 
 client.on('message', message => {
 
@@ -183,7 +223,7 @@ client.on('message', message => {
     if (message.author.bot == true) return;
 
 
-    if (message.content.startsWith("blob")) {
+    if (message.content.startsWith(configs.prefix)) {
 
         command.exec(message, client);
 

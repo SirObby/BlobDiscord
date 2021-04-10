@@ -19,7 +19,7 @@ exports.execute = async (message, command, args, client) => {
             let msg = undefined;
 
             queue[message.guild.id] = undefined;
-            bot.getQueue(queue)
+            bot(queue)
             message.member.voice.channel.leave()
 
             const left = new Discord.MessageEmbed()
