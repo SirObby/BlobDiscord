@@ -1,6 +1,6 @@
 # BlobDiscord
 
-An Antiraid discord bot. **This repository won't always be up to date! (but it is now since 3/20/2021 (MM/DD/YYYY) )**\
+An Antiraid discord bot. **This repository won't always be up to date! (but it is now since 4/10/2021 (MM/DD/YYYY) )**\
 [Invite](https://discord.com/api/oauth2/authorize?client_id=795196567241883659&permissions=8&scope=bot) [Support Server](https://discord.gg/dNfDBUC6Tu)
 
 ## Installing
