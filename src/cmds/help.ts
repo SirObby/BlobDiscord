@@ -16,9 +16,10 @@ exports.execute = (message, command, args, client) => {
         .setColor(0x7289da)
 
         .setDescription('To view anything run <help> <argument>')
-        .addField(`<:ban:801415398863929364> Anti Raid`, `MAX_MESSAGES`, true)
-        .addField(`<:790171307290394685:798587736155488326> Commands`, `help\ninfo\nping\nuptime`, true)
-        .addField(`<:790171307290394685:798587736155488326> Music Commands`, `play\nskip\nqueue\nstop`, true)
+        .addField(`Anti Raid`, `MAX_MESSAGES`, true)
+        .addField(`Moderation`, `ban\nkick`, true)
+        .addField(`Commands`, `help\ninfo\nping\nuptime`, true)
+        .addField(`Music Commands`, `play\nskip\nqueue\nstop`, true)
         ;
 
     message.channel.send(embed);

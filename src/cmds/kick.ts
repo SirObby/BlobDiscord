@@ -34,32 +34,22 @@ exports.execute = (message, command, args, client) => {
                         .setColor(0x7289da)
                         .setFooter(`You have been kicked from ${guild.name} by ${message.member.user.tag} because of ${reason}`)
 
-                    try {
-                        member.send(embed).then(msg => {
-                            member.kick({
-                                reason: reason,
-                            })
-                        })
+                        try {
 
-                        let embed2 = new Discord.MessageEmbed()
-                        .setColor(0x7289da)
-                        .setFooter(`You have kicked ${member.user.tag} because of ${reason} (Notified)`)
-
-                        message.channel.send(embed2)
-                        
-
-                    } catch (e) {
-                        let embed2 = new Discord.MessageEmbed()
+                            let embed2 = new Discord.MessageEmbed()
                         .setColor(0x7289da)
                         .setFooter(`You have kicked ${member.user.tag} because of ${reason} (Could not notify)`)
 
                         message.channel.send(embed2)
 
-                        member.kick({
-                            reason: reason,
-                        })
+                        message.channel.send(embed2)
 
-                    }
+                            member.kick({
+                                reason: reason,
+                            })
+                        }catch (e ) {
+                            console.log(e)
+                        }
                     
 
                 } else {

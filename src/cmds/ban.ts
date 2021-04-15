@@ -34,32 +34,28 @@ exports.execute = (message, command, args, client) => {
                         .setColor(0x7289da)
                         .setFooter(`You have been banned from ${guild.name} by ${message.member.user.tag} because of ${reason}`)
 
-                    try {
-                        member.send(embed).then(msg => {
-                            member.kick({
-                                reason: reason,
-                            })
-                        })
-
                         let embed2 = new Discord.MessageEmbed()
                         .setColor(0x7289da)
                         .setFooter(`You have banned ${member.user.tag} because of ${reason} (Notified)`)
 
                         message.channel.send(embed2)
-                        
 
-                    } catch (e) {
-                        let embed2 = new Discord.MessageEmbed()
+                        try {
+
+                            let embed2 = new Discord.MessageEmbed()
                         .setColor(0x7289da)
                         .setFooter(`You have banned ${member.user.tag} because of ${reason} (Could not notify)`)
 
                         message.channel.send(embed2)
 
-                        member.kick({
-                            reason: reason,
-                        })
+                        message.channel.send(embed2)
 
-                    }
+                            member.ban({
+                                reason: reason,
+                            })
+                        }catch (e ) {
+                            console.log(e)
+                        }
                     
 
                 } else {
