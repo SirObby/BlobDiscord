@@ -2,7 +2,7 @@ import { bot } from "../command"
 import { Discord } from "../bot"
 import { secondsToString } from "../bot"
 
-exports.execute = async (interaction, args, client) => {
+export const execute = async (interaction, args, client) => {
 
     client.api.interactions(interaction.id, interaction.token).callback.post({data: {
         type: 4,

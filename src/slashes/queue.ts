@@ -1,7 +1,7 @@
 import { bot } from "../command"
 import { Discord } from "../bot"
 
-exports.execute = async (interaction, args, client) => {
+export const execute = async (interaction, args, client) => {
 
     /*return client.api.interactions(interaction.id, interaction.token).callback.post({
         data: {

@@ -11,14 +11,17 @@ exports.init = () => {
 
 }
 
-exports.exec = (message, client) => {
+exports.exec = async (message, client) => {
 
     const args = message.content.slice(prefix.length).trim().split(' ');
     const command = args.shift().toLowerCase();
 
     try {
 
-        const cmd = require(`./cmds/${command}.js`)
+        
+            const cmd = await import(`./cmds/${command}.js`);
+
+        //const cmd = require(`./cmds/${command}.js`)
 
         if (configs.autoupdate) {
 

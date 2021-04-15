@@ -1,11 +1,11 @@
 import { bot } from "../command"
 import { Discord } from "../bot"
 
-exports.init = (command) => {
+export const init = (command) => {
     console.log(`${command} has been initialised!`)
 }
 
-exports.execute = (message, command, args, client) => {
+export const execute = (message, command, args, client) => {
 
     if(!args[0]) {
 
@@ -15,8 +15,8 @@ exports.execute = (message, command, args, client) => {
 
         .setColor(0x7289da)
 
-        .setDescription('To view anything run <help> <argument>')
-        .addField(`Anti Raid`, `MAX_MESSAGES`, true)
+//        .setDescription('To view anything run <help> <argument>')
+//       .addField(`Anti Raid`, `MAX_MESSAGES`, true)
         .addField(`Moderation`, `ban\nkick`, true)
         .addField(`Commands`, `help\ninfo\nping\nuptime`, true)
         .addField(`Music Commands`, `play\nskip\nqueue\nstop`, true)

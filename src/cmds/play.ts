@@ -2,12 +2,12 @@ import { bot } from "../command"
 import { Discord } from "../bot"
 import { ytdl } from "../bot"
 
-exports.init = (command) => {
+export const init = (command) => {
     console.log(`${command} has been initialised!`)
 
 }
 
-exports.execute = async (message, command, args, client) => {
+export const execute = async (message, command, args, client) => {
 
     if(!args[0]) {
         const eeee = new Discord.MessageEmbed()

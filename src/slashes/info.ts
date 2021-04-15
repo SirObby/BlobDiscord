@@ -1,7 +1,7 @@
 import { bot } from "../command"
 import { Discord } from "../bot"
 
-exports.execute = (interaction, args, client) => {
+export const execute = (interaction, args, client) => {
 
   const embed = new Discord.MessageEmbed()
 
